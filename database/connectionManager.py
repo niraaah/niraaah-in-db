@@ -9,7 +9,7 @@ class DatabaseManager:
                 host="localhost",
                 port=3000,
                 user="root",
-                password="xodbs1234",
+                password="qwer1234",
                 database="wsd3"
             )
             self.dbCursor = self.connection.cursor(dictionary=True)
