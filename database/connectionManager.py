@@ -92,6 +92,8 @@ class DatabaseManager:
                     name VARCHAR(100),
                     phone VARCHAR(20),
                     birth_date DATE,
+                    status VARCHAR(20) DEFAULT 'active',
+                    last_login TIMESTAMP,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
