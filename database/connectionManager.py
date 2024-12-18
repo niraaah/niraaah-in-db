@@ -48,6 +48,7 @@ class DatabaseManager:
 
     def _initializeTechnologies(self):
         try:
+            # companies 테이블
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS companies (
                     company_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -55,6 +56,7 @@ class DatabaseManager:
                 )
             """)
 
+            # tech_stacks 테이블
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS tech_stacks (
                     stack_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -62,17 +64,24 @@ class DatabaseManager:
                 )
             """)
             
+            # job_postings 테이블 - 컬럼 추가
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS job_postings (
                     posting_id INT PRIMARY KEY AUTO_INCREMENT,
                     title VARCHAR(200) NOT NULL,
-                    company VARCHAR(100) NOT NULL,
-                    category_id INT,
-                    description TEXT,
-                    FOREIGN KEY (category_id) REFERENCES job_categories(category_id)
+                    company_id INT,
+                    experience_level VARCHAR(100),
+                    education_level VARCHAR(100),
+                    employment_type VARCHAR(100),
+                    salary_info VARCHAR(200),
+                    location_id INT,
+                    deadline_date VARCHAR(100),
+                    job_link TEXT,
+                    FOREIGN KEY (company_id) REFERENCES companies(company_id)
                 )
             """)
             
+            # job_tech_stacks 테이블
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS job_tech_stacks (
                     posting_id INT,
