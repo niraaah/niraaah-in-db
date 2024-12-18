@@ -48,18 +48,61 @@ class DatabaseManager:
 
     def _initializeTechnologies(self):
         try:
-            # users 테이블 추가
+            # users 테이블 수정
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     user_id INT PRIMARY KEY AUTO_INCREMENT,
                     username VARCHAR(100) NOT NULL UNIQUE,
-                    password VARCHAR(255) NOT NULL,
+                    password_hash VARCHAR(255) NOT NULL,
                     email VARCHAR(100) UNIQUE,
+                    name VARCHAR(100),
+                    phone VARCHAR(20),
+                    birth_date DATE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
 
-            # companies 테이블
+            # resumes 테이블 추가
+            self.dbCursor.execute("""
+                CREATE TABLE IF NOT EXISTS resumes (
+                    resume_id INT PRIMARY KEY AUTO_INCREMENT,
+                    user_id INT NOT NULL,
+                    title VARCHAR(200) NOT NULL,
+                    content LONGBLOB,
+                    is_primary BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id)
+                )
+            """)
+
+            # applications 테이블 추가
+            self.dbCursor.execute("""
+                CREATE TABLE IF NOT EXISTS applications (
+                    application_id INT PRIMARY KEY AUTO_INCREMENT,
+                    user_id INT NOT NULL,
+                    posting_id INT NOT NULL,
+                    resume_id INT,
+                    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+                    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id),
+                    FOREIGN KEY (posting_id) REFERENCES job_postings(posting_id),
+                    FOREIGN KEY (resume_id) REFERENCES resumes(resume_id)
+                )
+            """)
+
+            # bookmarks 테이블 추가
+            self.dbCursor.execute("""
+                CREATE TABLE IF NOT EXISTS bookmarks (
+                    bookmark_id INT PRIMARY KEY AUTO_INCREMENT,
+                    user_id INT NOT NULL,
+                    posting_id INT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id),
+                    FOREIGN KEY (posting_id) REFERENCES job_postings(posting_id)
+                )
+            """)
+
+            # 기존 테이블들...
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS companies (
                     company_id INT PRIMARY KEY AUTO_INCREMENT,
