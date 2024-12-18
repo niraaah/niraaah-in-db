@@ -50,3 +50,98 @@ class JobDataProcessor:
         except Exception as e:
             self.dbManager.connection.rollback()
             raise
+
+    def _processLocation(self, location: str) -> Optional[int]:
+        """
+        위치 정보를 처리하는 메서드입니다.
+        현재는 사용하지 않으므로 None을 반환합니다.
+        """
+        return None
+
+    def _processTechStacks(self, techStackStr: str) -> List[int]:
+        """기술 스택 문자열을 처리하여 tech_stack_id 리스트를 반환합니다."""
+        if pd.isna(techStackStr):
+            return []
+        
+        techStacks = [tech.strip() for tech in techStackStr.split(',')]
+        techStackIds = []
+        
+        for tech in techStacks:
+            try:
+                cursor = self.dbManager.dbCursor
+                cursor.execute("SELECT stack_id FROM tech_stacks WHERE name = %s", (tech,))
+                result = cursor.fetchone()
+                
+                if result:
+                    techStackIds.append(result['stack_id'])
+                else:
+                    cursor.execute("INSERT INTO tech_stacks (name) VALUES (%s)", (tech,))
+                    self.dbManager.connection.commit()
+                    techStackIds.append(cursor.lastrowid)
+            except Exception as e:
+                self.dbManager.connection.rollback()
+                logger.error(f"Error processing tech stack {tech}: {str(e)}")
+        
+        return techStackIds
+
+    def _processCategories(self, categoryStr: str) -> List[int]:
+        """카테고리 문자열을 처리하여 category_id 리스트를 반환합니다."""
+        if pd.isna(categoryStr):
+            return []
+        
+        categories = [cat.strip() for cat in categoryStr.split(',')]
+        categoryIds = []
+        
+        for category in categories:
+            try:
+                cursor = self.dbManager.dbCursor
+                cursor.execute("SELECT category_id FROM job_categories WHERE name = %s", (category,))
+                result = cursor.fetchone()
+                
+                if result:
+                    categoryIds.append(result['category_id'])
+                else:
+                    cursor.execute("INSERT INTO job_categories (name) VALUES (%s)", (category,))
+                    self.dbManager.connection.commit()
+                    categoryIds.append(cursor.lastrowid)
+            except Exception as e:
+                self.dbManager.connection.rollback()
+                logger.error(f"Error processing category {category}: {str(e)}")
+        
+        return categoryIds
+
+    def _insertJobPosting(self, jobData: Dict) -> bool:
+        """채용공고 정보를 데이터베이스에 저장합니다."""
+        try:
+            cursor = self.dbManager.dbCursor
+            
+            # 채용공고 기본 정보 저장
+            query = """
+                INSERT INTO job_postings (
+                    title, company_id, experience_level, education_level,
+                    employment_type, salary_info, location_id, deadline_date, job_link
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            values = (
+                jobData['jobTitle'], jobData['companyId'], jobData['experienceLevel'],
+                jobData['educationLevel'], jobData['employmentType'], jobData['salaryInfo'],
+                jobData['locationId'], jobData['deadlineDate'], jobData['jobLink']
+            )
+            
+            cursor.execute(query, values)
+            posting_id = cursor.lastrowid
+            
+            # 기술 스택 연결 정보 저장
+            for tech_id in jobData['techStacks']:
+                cursor.execute(
+                    "INSERT INTO job_tech_stacks (posting_id, stack_id) VALUES (%s, %s)",
+                    (posting_id, tech_id)
+                )
+            
+            self.dbManager.connection.commit()
+            return True
+            
+        except Exception as e:
+            self.dbManager.connection.rollback()
+            logger.error(f"Error inserting job posting: {str(e)}")
+            return False
