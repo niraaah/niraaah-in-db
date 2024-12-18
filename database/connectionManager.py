@@ -7,7 +7,7 @@ class DatabaseManager:
         try:
             self.connection = mysql.connector.connect(
                 host="localhost",
-                port=19108,
+                port=8080,
                 user="admin",
                 password="qwer1234",
                 database="wsd3"
@@ -48,6 +48,17 @@ class DatabaseManager:
 
     def _initializeTechnologies(self):
         try:
+            # users 테이블 추가
+            self.dbCursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id INT PRIMARY KEY AUTO_INCREMENT,
+                    username VARCHAR(100) NOT NULL UNIQUE,
+                    password VARCHAR(255) NOT NULL,
+                    email VARCHAR(100) UNIQUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
             # companies 테이블
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS companies (
