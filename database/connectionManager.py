@@ -48,7 +48,41 @@ class DatabaseManager:
 
     def _initializeTechnologies(self):
         try:
-            # users 테이블 수정
+            # 1. 기본 테이블 (외래 키 없는 테이블)
+            # companies 테이블
+            self.dbCursor.execute("""
+                CREATE TABLE IF NOT EXISTS companies (
+                    company_id INT PRIMARY KEY AUTO_INCREMENT,
+                    name VARCHAR(100) NOT NULL UNIQUE
+                )
+            """)
+
+            # tech_stacks 테이블
+            self.dbCursor.execute("""
+                CREATE TABLE IF NOT EXISTS tech_stacks (
+                    stack_id INT PRIMARY KEY AUTO_INCREMENT,
+                    name VARCHAR(100) NOT NULL UNIQUE
+                )
+            """)
+
+            # 2. job_postings 테이블
+            self.dbCursor.execute("""
+                CREATE TABLE IF NOT EXISTS job_postings (
+                    posting_id INT PRIMARY KEY AUTO_INCREMENT,
+                    title VARCHAR(200) NOT NULL,
+                    company_id INT,
+                    experience_level VARCHAR(100),
+                    education_level VARCHAR(100),
+                    employment_type VARCHAR(100),
+                    salary_info VARCHAR(200),
+                    location_id INT,
+                    deadline_date VARCHAR(100),
+                    job_link TEXT,
+                    FOREIGN KEY (company_id) REFERENCES companies(company_id)
+                )
+            """)
+
+            # 3. users 테이블
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     user_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -62,7 +96,8 @@ class DatabaseManager:
                 )
             """)
 
-            # resumes 테이블 추가
+            # 4. 나머지 테이블들 (외래 키 있는 테이블)
+            # ... (나머지 테이블 생성 코드)
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS resumes (
                     resume_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -102,39 +137,6 @@ class DatabaseManager:
                 )
             """)
 
-            # 기존 테이블들...
-            self.dbCursor.execute("""
-                CREATE TABLE IF NOT EXISTS companies (
-                    company_id INT PRIMARY KEY AUTO_INCREMENT,
-                    name VARCHAR(100) NOT NULL UNIQUE
-                )
-            """)
-
-            # tech_stacks 테이블
-            self.dbCursor.execute("""
-                CREATE TABLE IF NOT EXISTS tech_stacks (
-                    stack_id INT PRIMARY KEY AUTO_INCREMENT,
-                    name VARCHAR(100) NOT NULL UNIQUE
-                )
-            """)
-            
-            # job_postings 테이블 - 컬럼 추가
-            self.dbCursor.execute("""
-                CREATE TABLE IF NOT EXISTS job_postings (
-                    posting_id INT PRIMARY KEY AUTO_INCREMENT,
-                    title VARCHAR(200) NOT NULL,
-                    company_id INT,
-                    experience_level VARCHAR(100),
-                    education_level VARCHAR(100),
-                    employment_type VARCHAR(100),
-                    salary_info VARCHAR(200),
-                    location_id INT,
-                    deadline_date VARCHAR(100),
-                    job_link TEXT,
-                    FOREIGN KEY (company_id) REFERENCES companies(company_id)
-                )
-            """)
-            
             # job_tech_stacks 테이블
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS job_tech_stacks (
