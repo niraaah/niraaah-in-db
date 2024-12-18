@@ -7,8 +7,8 @@ class DatabaseManager:
         try:
             self.connection = mysql.connector.connect(
                 host="localhost",
-                port=3000,
-                user="root",
+                port=19108,
+                user="admin",
                 password="qwer1234",
                 database="wsd3"
             )
