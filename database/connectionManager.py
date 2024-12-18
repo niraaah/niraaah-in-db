@@ -49,6 +49,13 @@ class DatabaseManager:
     def _initializeTechnologies(self):
         try:
             self.dbCursor.execute("""
+                CREATE TABLE IF NOT EXISTS companies (
+                    company_id INT PRIMARY KEY AUTO_INCREMENT,
+                    name VARCHAR(100) NOT NULL UNIQUE
+                )
+            """)
+
+            self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS tech_stacks (
                     stack_id INT PRIMARY KEY AUTO_INCREMENT,
                     name VARCHAR(100) NOT NULL UNIQUE
