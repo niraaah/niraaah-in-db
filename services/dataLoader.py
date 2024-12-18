@@ -36,3 +36,10 @@ def processDataFile(filename: str):
         raise
     finally:
         dbManager.closeConnection()
+
+if __name__ == "__main__":
+    try:
+        csv_file = "recruitment_data.csv"  # CSV 파일 경로
+        processDataFile(csv_file)
+    except Exception as e:
+        logger.error(f"Main execution error: {str(e)}")
