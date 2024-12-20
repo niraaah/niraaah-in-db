@@ -119,7 +119,7 @@ class JobDataProcessor:
             query = """
                 INSERT INTO job_postings (
                     title, company_id, experience_level, education_level,
-                    employment_type, salary_info, location_id, deadline_date, job_link
+                    employment_type, salary_range, location_id, deadline_date, job_link
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             values = (
