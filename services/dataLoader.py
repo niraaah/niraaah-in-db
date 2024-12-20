@@ -59,24 +59,9 @@ def processDataFile(filename: str):
 
 if __name__ == "__main__":
     try:
-        # 데이터베이스 매니저 생성
-        dbManager = DatabaseManager()
-        
-        try:
-            # CSV 파일 경로
-            csv_file = "recruitment_data.csv"
-            
-            # 데이터 처리 시작
-            print("Starting data processing...")
-            processDataFile(csv_file)
-            print("Data processing completed successfully")
-            
-        except Exception as e:
-            logger.error(f"Error during data processing: {str(e)}")
-            raise
-        finally:
-            # 데이터베이스 연결 종료
-            dbManager.closeConnection()
-            
+        csv_file = "recruitment_data.csv"
+        print("Starting data processing...")
+        processDataFile(csv_file)
+        print("Data processing completed successfully")
     except Exception as e:
         logger.error(f"Main execution error: {str(e)}")
