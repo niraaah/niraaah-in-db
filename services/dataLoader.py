@@ -41,6 +41,48 @@ def processDataFile(filename: str):
         if dbManager:
             dbManager.closeConnection()
 
+def loadTechnologyData(dbManager):
+    try:
+        cursor = dbManager.dbCursor
+        
+        # 기술 스택 데이터 로드
+        tech_data = pd.read_csv('data/tech_stacks.csv')
+        
+        for _, row in tech_data.iterrows():
+            cursor.execute(
+                "INSERT INTO tech_stacks (stack_name, category) VALUES (%s, %s)",
+                (row['name'], row.get('category', 'Other'))
+            )
+        
+        dbManager.connection.commit()
+        print("Technology data loaded successfully")
+        
+    except Exception as e:
+        dbManager.connection.rollback()
+        print(f"Error loading technology data: {e}")
+        raise
+
+def loadCategoryData(dbManager):
+    try:
+        cursor = dbManager.dbCursor
+        
+        # 직무 카테고리 데이터 로드
+        category_data = pd.read_csv('data/job_categories.csv')
+        
+        for _, row in category_data.iterrows():
+            cursor.execute(
+                "INSERT INTO job_categories (name) VALUES (%s)",
+                (row['name'],)
+            )
+        
+        dbManager.connection.commit()
+        print("Category data loaded successfully")
+        
+    except Exception as e:
+        dbManager.connection.rollback()
+        print(f"Error loading category data: {e}")
+        raise
+
 if __name__ == "__main__":
     try:
         csv_file = "recruitment_data.csv"  # CSV 파일 경로
