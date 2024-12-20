@@ -36,20 +36,18 @@ class JobDataProcessor:
 
     def _processCompany(self, companyName: str) -> Optional[int]:
         try:
-            cursor = self.dbManager.connection.cursor(dictionary=True)
-            cursor.execute("SELECT company_id FROM companies WHERE name = %s", (companyName,))
-            result = cursor.fetchone()
-            cursor.close()
+            result = self.dbManager.executeOne(
+                "SELECT company_id FROM companies WHERE name = %s", 
+                (companyName,)
+            )
             
             if result:
                 return result['company_id']
             
-            cursor = self.dbManager.connection.cursor(dictionary=True)
-            cursor.execute("INSERT INTO companies (name) VALUES (%s)", (companyName,))
-            company_id = cursor.lastrowid
-            self.dbManager.connection.commit()
-            cursor.close()
-            return company_id
+            return self.dbManager.executeInsert(
+                "INSERT INTO companies (name) VALUES (%s)", 
+                (companyName,)
+            )
             
         except Exception as e:
             self.dbManager.connection.rollback()
@@ -89,7 +87,6 @@ class JobDataProcessor:
         return techStackIds
 
     def _processCategories(self, categoryStr: str) -> List[int]:
-        """카테고리 문자열을 처리하여 category_id 리스트를 반환합니다."""
         if pd.isna(categoryStr):
             return []
         
@@ -98,19 +95,19 @@ class JobDataProcessor:
         
         for category in categories:
             try:
-                cursor = self.dbManager.connection.cursor(dictionary=True)
-                cursor.execute("SELECT category_id FROM job_categories WHERE name = %s", (category,))
-                result = cursor.fetchone()
-                cursor.close()
+                result = self.dbManager.executeOne(
+                    "SELECT category_id FROM job_categories WHERE name = %s", 
+                    (category,)
+                )
                 
                 if result:
                     categoryIds.append(result['category_id'])
                 else:
-                    cursor = self.dbManager.connection.cursor(dictionary=True)
-                    cursor.execute("INSERT INTO job_categories (name) VALUES (%s)", (category,))
-                    self.dbManager.connection.commit()
-                    categoryIds.append(cursor.lastrowid)
-                    cursor.close()
+                    category_id = self.dbManager.executeInsert(
+                        "INSERT INTO job_categories (name) VALUES (%s)", 
+                        (category,)
+                    )
+                    categoryIds.append(category_id)
                 
             except Exception as e:
                 self.dbManager.connection.rollback()

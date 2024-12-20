@@ -6,25 +6,59 @@ class DatabaseManager:
     def __init__(self):
         try:
             self.connection = mysql.connector.connect(
-                host="113.198.66.75",  # 실제 DB 서버 주소
-                port=10108,            # 실제 포트
+                host="113.198.66.75",
+                port=10108,
                 user="admin",
                 password="qwer1234",
                 database="wsd3",
                 pool_name="mypool",
                 pool_size=32,
-                pool_reset_session=True
+                pool_reset_session=True,
+                consume_results=True
             )
             if not self.connection.is_connected():
                 raise Error("Failed to connect to database")
                 
-            self.dbCursor = self.connection.cursor(dictionary=True)
+            self.dbCursor = self.connection.cursor(dictionary=True, buffered=True)
             self._initializeDatabase()
-            self.techCache = self._loadTechnologyData()
-            self.categoryCache = self._loadCategoryData()
+            
         except Error as e:
             print(f"Error: {e}")
             raise
+
+    def getCursor(self):
+        """새로운 커서를 반환합니다."""
+        return self.connection.cursor(dictionary=True, buffered=True)
+
+    def execute(self, query, params=None):
+        """쿼리를 실행하고 결과를 반환합니다."""
+        cursor = self.getCursor()
+        try:
+            cursor.execute(query, params)
+            result = cursor.fetchall()
+            return result
+        finally:
+            cursor.close()
+
+    def executeOne(self, query, params=None):
+        """쿼리를 실행하고 단일 결과를 반환합니다."""
+        cursor = self.getCursor()
+        try:
+            cursor.execute(query, params)
+            result = cursor.fetchone()
+            return result
+        finally:
+            cursor.close()
+
+    def executeInsert(self, query, params=None):
+        """INSERT 쿼리를 실행하고 마지막 ID를 반환합니다."""
+        cursor = self.getCursor()
+        try:
+            cursor.execute(query, params)
+            self.connection.commit()
+            return cursor.lastrowid
+        finally:
+            cursor.close()
 
     def _initializeDatabase(self):
         try:
