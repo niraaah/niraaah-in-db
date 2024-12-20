@@ -58,7 +58,6 @@ class JobDataProcessor:
         return None
 
     def _processTechStacks(self, techStackStr: str) -> List[int]:
-        """기술 스택 문자열을 처리하여 tech_stack_id 리스트를 반환합니다."""
         if pd.isna(techStackStr):
             return []
         
@@ -87,7 +86,6 @@ class JobDataProcessor:
         return techStackIds
 
     def _processCategories(self, categoryStr: str) -> List[int]:
-        """카테고리 문자열을 처리하여 category_id 리스트를 반환합니다."""
         if pd.isna(categoryStr):
             return []
         
