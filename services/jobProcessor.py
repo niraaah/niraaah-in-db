@@ -29,12 +29,12 @@ class JobDataProcessor:
             
             jobData = {
                 'companyId': companyId,
-                'jobTitle': rowData['제목'],
+                'jobTitle': rowData['제���'],
                 'jobLink': rowData['링크'],
                 'experienceLevel': rowData['경력'],
                 'educationLevel': rowData['학력'],
                 'employmentType': rowData['고용형태'],
-                'salaryInfo': rowData['연봉'],  # CSV의 '연봉' 컬럼 사용
+                'salaryInfo': rowData['연봉정보'],  # 연봉 -> 연봉정보로 수정
                 'locationId': locationId,
                 'deadlineDate': rowData['마감일'],
                 'techStacks': techStackIds,
