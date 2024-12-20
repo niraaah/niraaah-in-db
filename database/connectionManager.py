@@ -62,6 +62,20 @@ class DatabaseManager:
 
     def _initializeDatabase(self):
         try:
+            # users 테이블
+            self.dbCursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id INT PRIMARY KEY AUTO_INCREMENT,
+                    email VARCHAR(100) UNIQUE NOT NULL,
+                    password VARCHAR(200) NOT NULL,
+                    name VARCHAR(50) NOT NULL,
+                    phone VARCHAR(20),
+                    birth_date DATE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )
+            """)
+
             # companies 테이블
             self.dbCursor.execute("""
                 CREATE TABLE IF NOT EXISTS companies (
