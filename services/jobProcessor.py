@@ -8,23 +8,22 @@ class JobDataProcessor:
     def __init__(self, dbManager):
         self.dbManager = dbManager
 
-    def processJobEntry(self, rowData: pd.Series) -> bool:
+    def processJobEntry(self, rowData: Dict) -> bool:
         try:
-            companyId = self._processCompany(rowData['회사명'])
-            locationId = self._processLocation(rowData['지역'])
-            techStackIds = self._processTechStacks(rowData['직무분야'])
-            categoryIds = self._processCategories(rowData['경력'])
+            companyId = self._processCompany(rowData['company_name'])
+            techStackIds = self._processTechStacks(rowData['tech_stack'])
+            categoryIds = self._processCategories(rowData['experience'])
             
             jobData = {
                 'companyId': companyId,
-                'jobTitle': rowData['제목'],
-                'jobLink': rowData['링크'],
-                'experienceLevel': None if pd.isna(rowData['경력']) else rowData['경력'],
-                'educationLevel': None if pd.isna(rowData['학력']) else rowData['학력'],
-                'employmentType': None if pd.isna(rowData['고용형태']) else rowData['고용형태'],
-                'salaryInfo': None if pd.isna(rowData['연봉정보']) else rowData['연봉정보'],
-                'locationId': locationId,
-                'deadlineDate': None if pd.isna(rowData['마감일']) else rowData['마감일'],
+                'title': rowData['title'],
+                'link': rowData['link'],
+                'experience': None if pd.isna(rowData['experience']) else rowData['experience'],
+                'education': None if pd.isna(rowData['education']) else rowData['education'],
+                'employment_type': None if pd.isna(rowData['employment_type']) else rowData['employment_type'],
+                'salary': None if pd.isna(rowData['salary']) else rowData['salary'],
+                'location': rowData['location'],
+                'deadline': None if pd.isna(rowData['deadline']) else rowData['deadline'],
                 'techStacks': techStackIds,
                 'categories': categoryIds
             }
@@ -117,22 +116,34 @@ class JobDataProcessor:
         return categoryIds
 
     def _insertJobPosting(self, jobData: Dict) -> bool:
-        """채용공고 정보를 데이터베이스에 저장합니다."""
+        query = """
+            INSERT INTO job_postings (
+                company_id, title, experience_level, education_level,
+                employment_type, salary_range, location_city, location_district,
+                deadline_date, job_link
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        
+        # 지역 분리
+        location_parts = jobData['location'].split() if jobData['location'] else [None, None]
+        city = location_parts[0] if len(location_parts) > 0 else None
+        district = location_parts[1] if len(location_parts) > 1 else None
+        
+        values = (
+            jobData['companyId'],
+            jobData['title'],
+            jobData['experience'],
+            jobData['education'],
+            jobData['employment_type'],
+            jobData['salary'],
+            city,
+            district,
+            jobData['deadline'],
+            jobData['link']
+        )
+        
         try:
             cursor = self.dbManager.dbCursor
-            
-            # 채용공고 기본 정보 저장
-            query = """
-                INSERT INTO job_postings (
-                    title, company_id, experience_level, education_level,
-                    employment_type, salary_range, location_id, deadline_date, job_link
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            values = (
-                jobData['jobTitle'], jobData['companyId'], jobData['experienceLevel'],
-                jobData['educationLevel'], jobData['employmentType'], jobData['salaryInfo'],
-                jobData['locationId'], jobData['deadlineDate'], jobData['jobLink']
-            )
             
             cursor.execute(query, values)
             posting_id = cursor.lastrowid

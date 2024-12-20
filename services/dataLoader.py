@@ -15,7 +15,7 @@ def processDataFile(filename: str):
         processor = JobDataProcessor(dbManager)
         
         # CSV 파일 읽기
-        dataFrame = pd.read_csv(filename, parse_dates=['수집일자', '마감일'])
+        dataFrame = pd.read_csv(filename, parse_dates=['timestamp', '마감일'])
         successCount = 0
         skipCount = 0
         
@@ -24,16 +24,16 @@ def processDataFile(filename: str):
             try:
                 # 데이터 매핑
                 jobData = {
-                    '회사명': row['회사명'],
-                    '제목': row['제목'],
-                    '링크': row['링크'],
-                    '경력': row['경력'],
-                    '학력': row['학력'],
-                    '고용형태': row['고용형태'],
-                    '연봉정보': row['연봉정보'],
-                    '지역': row['지역'],
-                    '직무분야': row['직무분야'],  # 기술 스택으로 사용
-                    '마감일': row['마감일']
+                    'company_name': row['회사명'],
+                    'title': row['제목'],
+                    'link': row['링크'],
+                    'experience': row['경력'],
+                    'education': row['학력'],
+                    'employment_type': row['고용형태'],
+                    'salary': row['연봉정보'],
+                    'location': row['지역'],
+                    'tech_stack': row['직무분야'],
+                    'deadline': row['마감일']
                 }
                 
                 result = processor.processJobEntry(jobData)
