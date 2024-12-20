@@ -10,33 +10,21 @@ class JobDataProcessor:
 
     def processJobEntry(self, rowData: pd.Series) -> bool:
         try:
-            # 회사 정보 처리
             companyId = self._processCompany(rowData['회사명'])
-            
-            # 위치 정보 처리 (시/구 분리)
-            location = rowData['지역'].split()
-            locationId = self._processLocation({
-                'city': location[0] if location else None,
-                'district': location[1] if len(location) > 1 else None
-            })
-            
-            # 기술 스택 처리
-            techStacks = [stack.strip() for stack in rowData['직무분야'].split(',')]
-            techStackIds = self._processTechStacks(techStacks)
-            
-            # 경력 카테고리 처리
-            categoryIds = self._processCategories([rowData['경력']])
+            locationId = self._processLocation(rowData['지역'])
+            techStackIds = self._processTechStacks(rowData['직무분야'])
+            categoryIds = self._processCategories(rowData['경력'])
             
             jobData = {
                 'companyId': companyId,
-                'jobTitle': rowData['제���'],
+                'jobTitle': rowData['제목'],
                 'jobLink': rowData['링크'],
-                'experienceLevel': rowData['경력'],
-                'educationLevel': rowData['학력'],
-                'employmentType': rowData['고용형태'],
-                'salaryInfo': rowData['연봉정보'],  # 연봉 -> 연봉정보로 수정
+                'experienceLevel': None if pd.isna(rowData['경력']) else rowData['경력'],
+                'educationLevel': None if pd.isna(rowData['학력']) else rowData['학력'],
+                'employmentType': None if pd.isna(rowData['고용형태']) else rowData['고용형태'],
+                'salaryInfo': None if pd.isna(rowData['연봉정보']) else rowData['연봉정보'],
                 'locationId': locationId,
-                'deadlineDate': rowData['마감일'],
+                'deadlineDate': None if pd.isna(rowData['마감일']) else rowData['마감일'],
                 'techStacks': techStackIds,
                 'categories': categoryIds
             }
@@ -63,21 +51,22 @@ class JobDataProcessor:
             self.dbManager.connection.rollback()
             raise
 
-    def _processLocation(self, location: Dict) -> Optional[int]:
+    def _processLocation(self, location: str) -> Optional[int]:
         """
         위치 정보를 처리하는 메서드입니다.
         현재는 사용하지 않으므로 None을 반환합니다.
         """
         return None
 
-    def _processTechStacks(self, techStackStr: List[str]) -> List[int]:
+    def _processTechStacks(self, techStackStr: str) -> List[int]:
         """기술 스택 문자열을 처리하여 tech_stack_id 리스트를 반환합니다."""
-        if not techStackStr:
+        if pd.isna(techStackStr):
             return []
         
+        techStacks = [tech.strip() for tech in techStackStr.split(',')]
         techStackIds = []
         
-        for tech in techStackStr:
+        for tech in techStacks:
             try:
                 cursor = self.dbManager.dbCursor
                 cursor.execute("SELECT stack_id FROM tech_stacks WHERE name = %s", (tech,))
@@ -95,14 +84,15 @@ class JobDataProcessor:
         
         return techStackIds
 
-    def _processCategories(self, categoryStr: List[str]) -> List[int]:
+    def _processCategories(self, categoryStr: str) -> List[int]:
         """카테고리 문자열을 처리하여 category_id 리스트를 반환합니다."""
-        if not categoryStr:
+        if pd.isna(categoryStr):
             return []
         
+        categories = [cat.strip() for cat in categoryStr.split(',')]
         categoryIds = []
         
-        for category in categoryStr:
+        for category in categories:
             try:
                 cursor = self.dbManager.dbCursor
                 cursor.execute("SELECT category_id FROM job_categories WHERE name = %s", (category,))
