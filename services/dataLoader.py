@@ -9,10 +9,11 @@ from utils.logConfig import setupLogger
 logger = setupLogger()
 
 def processDataFile(filename: str):
-    dbManager = DatabaseManager()
-    processor = JobDataProcessor(dbManager)
-    
+    dbManager = None
     try:
+        dbManager = DatabaseManager()
+        processor = JobDataProcessor(dbManager)
+        
         dataFrame = pd.read_csv(filename)
         successCount = 0
         skipCount = 0
@@ -22,20 +23,23 @@ def processDataFile(filename: str):
                 result = processor.processJobEntry(rowData)
                 if result:
                     successCount += 1
+                    if successCount % 100 == 0:  # 진행상황 로깅
+                        print(f"Processed {successCount} entries...")
                 else:
                     skipCount += 1
                 
             except Exception as e:
-                logger.error(f"Row processing error: {str(e)}")
+                print(f"Error processing row: {str(e)}")
                 continue
         
-        logger.info(f"Processing completed. Inserted: {successCount}, Skipped: {skipCount}")
+        print(f"Processing completed. Inserted: {successCount}, Skipped: {skipCount}")
         
     except Exception as e:
-        logger.error(f"File processing error: {str(e)}")
+        print(f"Fatal error: {str(e)}")
         raise
     finally:
-        dbManager.closeConnection()
+        if dbManager:
+            dbManager.closeConnection()
 
 if __name__ == "__main__":
     try:
