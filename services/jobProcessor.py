@@ -41,7 +41,7 @@ class JobDataProcessor:
             result = cursor.fetchone()
             
             if result:
-                return result['company_id']
+                return result[0]
             
             cursor.execute("INSERT INTO companies (name) VALUES (%s)", (companyName,))
             self.dbManager.connection.commit()
@@ -98,7 +98,7 @@ class JobDataProcessor:
                 result = cursor.fetchone()
                 
                 if result:
-                    categoryIds.append(result['category_id'])
+                    categoryIds.append(result[0])
                 else:
                     cursor.execute("INSERT INTO job_categories (name) VALUES (%s)", (category,))
                     self.dbManager.connection.commit()
