@@ -38,13 +38,13 @@ class JobDataProcessor:
     def _processCompany(self, companyName: str) -> Optional[int]:
         cursor = self.dbManager.dbCursor
         try:
-            cursor.execute("SELECT company_id FROM companies WHERE name = %s", (companyName,))
+            cursor.execute("SELECT company_id FROM companies WHERE company_name = %s", (companyName,))
             result = cursor.fetchone()
             
             if result:
                 return result['company_id']
             
-            cursor.execute("INSERT INTO companies (name) VALUES (%s)", (companyName,))
+            cursor.execute("INSERT INTO companies (company_name) VALUES (%s)", (companyName,))
             self.dbManager.connection.commit()
             return cursor.lastrowid
         except Exception as e:
@@ -98,14 +98,14 @@ class JobDataProcessor:
         for category in categories:
             try:
                 cursor = self.dbManager.dbCursor
-                cursor.execute("SELECT category_id FROM job_categories WHERE name = %s", (category,))
+                cursor.execute("SELECT category_id FROM job_categories WHERE category_name = %s", (category,))
                 result = cursor.fetchone()
                 
                 if result:
                     categoryIds.append(result['category_id'])
                 else:
                     cursor.execute(
-                        "INSERT INTO job_categories (name) VALUES (%s)",
+                        "INSERT INTO job_categories (category_name) VALUES (%s)",
                         (category,)
                     )
                     self.dbManager.connection.commit()
