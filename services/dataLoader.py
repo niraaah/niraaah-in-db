@@ -12,8 +12,56 @@ def processDataFile(filename: str):
     dbManager = None
     try:
         dbManager = DatabaseManager()
-        processor = JobDataProcessor(dbManager)
         
+        # 테이블 초기화
+        cursor = dbManager.dbCursor
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS job_categories (
+                category_id INT PRIMARY KEY AUTO_INCREMENT,
+                name VARCHAR(50) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS job_postings (
+                posting_id INT PRIMARY KEY AUTO_INCREMENT,
+                company_id INT NOT NULL,
+                title VARCHAR(200) NOT NULL,
+                experience_level VARCHAR(50),
+                education_level VARCHAR(50),
+                employment_type VARCHAR(50),
+                location_id INT,
+                deadline_date DATE,
+                job_link VARCHAR(500),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (company_id) REFERENCES companies(company_id),
+                FOREIGN KEY (location_id) REFERENCES locations(location_id)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS job_posting_categories (
+                posting_id INT,
+                category_id INT,
+                PRIMARY KEY (posting_id, category_id),
+                FOREIGN KEY (posting_id) REFERENCES job_postings(posting_id),
+                FOREIGN KEY (category_id) REFERENCES job_categories(category_id)
+            )
+        """)
+
+        # 기본 카테고리 데이터 삽입
+        categories = ['신입', '경력', '신입·경력', '경력무관', '인턴', '전문연구요원']
+        for category in categories:
+            cursor.execute("""
+                INSERT IGNORE INTO job_categories (name) 
+                VALUES (%s)
+            """, (category,))
+        
+        dbManager.connection.commit()
+        
+        # 데이터 처리
+        processor = JobDataProcessor(dbManager)
         dataFrame = pd.read_csv(filename)
         successCount = 0
         skipCount = 0

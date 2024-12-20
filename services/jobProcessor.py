@@ -22,7 +22,6 @@ class JobDataProcessor:
                 'experienceLevel': None if pd.isna(rowData['경력']) else rowData['경력'],
                 'educationLevel': None if pd.isna(rowData['학력']) else rowData['학력'],
                 'employmentType': None if pd.isna(rowData['고용형태']) else rowData['고용형태'],
-                'salaryInfo': None if pd.isna(rowData['연봉정보']) else rowData['연봉정보'],
                 'locationId': locationId,
                 'deadlineDate': None if pd.isna(rowData['마감일']) else rowData['마감일'],
                 'techStacks': techStackIds,
@@ -111,7 +110,6 @@ class JobDataProcessor:
         return categoryIds
 
     def _insertJobPosting(self, jobData: Dict) -> bool:
-        """채용공고 정보를 데이터베이스에 저장합니다."""
         try:
             cursor = self.dbManager.dbCursor
             
@@ -119,23 +117,24 @@ class JobDataProcessor:
             query = """
                 INSERT INTO job_postings (
                     title, company_id, experience_level, education_level,
-                    employment_type, salary_info, location_id, deadline_date, job_link
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    employment_type, location_id, deadline_date, job_link
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
             values = (
-                jobData['jobTitle'], jobData['companyId'], jobData['experienceLevel'],
-                jobData['educationLevel'], jobData['employmentType'], jobData['salaryInfo'],
-                jobData['locationId'], jobData['deadlineDate'], jobData['jobLink']
+                jobData['jobTitle'], jobData['companyId'], 
+                jobData['experienceLevel'], jobData['educationLevel'], 
+                jobData['employmentType'], jobData['locationId'], 
+                jobData['deadlineDate'], jobData['jobLink']
             )
             
             cursor.execute(query, values)
             posting_id = cursor.lastrowid
             
-            # 기술 스택 연결 정보 저장
-            for tech_id in jobData['techStacks']:
+            # 카테고리 연결 정보 저장
+            for category in jobData['categories']:
                 cursor.execute(
-                    "INSERT INTO job_tech_stacks (posting_id, stack_id) VALUES (%s, %s)",
-                    (posting_id, tech_id)
+                    "INSERT INTO job_posting_categories (posting_id, category_id) VALUES (%s, %s)",
+                    (posting_id, category)
                 )
             
             self.dbManager.connection.commit()
