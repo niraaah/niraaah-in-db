@@ -69,13 +69,16 @@ class JobDataProcessor:
         for tech in techStacks:
             try:
                 cursor = self.dbManager.dbCursor
-                cursor.execute("SELECT stack_id FROM tech_stacks WHERE name = %s", (tech,))
+                cursor.execute("SELECT stack_id FROM tech_stacks WHERE stack_name = %s", (tech,))
                 result = cursor.fetchone()
                 
                 if result:
                     techStackIds.append(result['stack_id'])
                 else:
-                    cursor.execute("INSERT INTO tech_stacks (name) VALUES (%s)", (tech,))
+                    cursor.execute(
+                        "INSERT INTO tech_stacks (stack_name, category) VALUES (%s, 'Other')",
+                        (tech,)
+                    )
                     self.dbManager.connection.commit()
                     techStackIds.append(cursor.lastrowid)
             except Exception as e:
@@ -101,7 +104,10 @@ class JobDataProcessor:
                 if result:
                     categoryIds.append(result['category_id'])
                 else:
-                    cursor.execute("INSERT INTO job_categories (name) VALUES (%s)", (category,))
+                    cursor.execute(
+                        "INSERT INTO job_categories (name) VALUES (%s)",
+                        (category,)
+                    )
                     self.dbManager.connection.commit()
                     categoryIds.append(cursor.lastrowid)
             except Exception as e:
