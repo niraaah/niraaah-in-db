@@ -35,17 +35,22 @@ class JobDataProcessor:
             return False
 
     def _processCompany(self, companyName: str) -> Optional[int]:
-        cursor = self.dbManager.dbCursor
         try:
+            cursor = self.dbManager.connection.cursor(dictionary=True)
             cursor.execute("SELECT company_id FROM companies WHERE name = %s", (companyName,))
             result = cursor.fetchone()
+            cursor.close()
             
             if result:
                 return result['company_id']
             
+            cursor = self.dbManager.connection.cursor(dictionary=True)
             cursor.execute("INSERT INTO companies (name) VALUES (%s)", (companyName,))
+            company_id = cursor.lastrowid
             self.dbManager.connection.commit()
-            return cursor.lastrowid
+            cursor.close()
+            return company_id
+            
         except Exception as e:
             self.dbManager.connection.rollback()
             raise
@@ -93,16 +98,20 @@ class JobDataProcessor:
         
         for category in categories:
             try:
-                cursor = self.dbManager.dbCursor
+                cursor = self.dbManager.connection.cursor(dictionary=True)
                 cursor.execute("SELECT category_id FROM job_categories WHERE name = %s", (category,))
                 result = cursor.fetchone()
+                cursor.close()
                 
                 if result:
                     categoryIds.append(result['category_id'])
                 else:
+                    cursor = self.dbManager.connection.cursor(dictionary=True)
                     cursor.execute("INSERT INTO job_categories (name) VALUES (%s)", (category,))
                     self.dbManager.connection.commit()
                     categoryIds.append(cursor.lastrowid)
+                    cursor.close()
+                
             except Exception as e:
                 self.dbManager.connection.rollback()
                 logger.error(f"Error processing category {category}: {str(e)}")
@@ -111,7 +120,7 @@ class JobDataProcessor:
 
     def _insertJobPosting(self, jobData: Dict) -> bool:
         try:
-            cursor = self.dbManager.dbCursor
+            cursor = self.dbManager.connection.cursor(dictionary=True)
             
             # 채용공고 기본 정보 저장
             query = """
@@ -138,6 +147,7 @@ class JobDataProcessor:
                 )
             
             self.dbManager.connection.commit()
+            cursor.close()
             return True
             
         except Exception as e:
