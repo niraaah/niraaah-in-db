@@ -140,8 +140,15 @@ class JobDataProcessor:
             # 기술 스택 연결 정보 저장
             for tech_id in jobData['techStacks']:
                 cursor.execute(
-                    "INSERT INTO job_tech_stacks (posting_id, stack_id) VALUES (%s, %s)",
+                    "INSERT INTO posting_tech_stacks (posting_id, stack_id) VALUES (%s, %s)",
                     (posting_id, tech_id)
+                )
+            
+            # 카테고리 연결 정보 저장
+            for category_id in jobData['categories']:
+                cursor.execute(
+                    "INSERT INTO posting_categories (posting_id, category_id) VALUES (%s, %s)",
+                    (posting_id, category_id)
                 )
             
             self.dbManager.connection.commit()
